@@ -1,9 +1,12 @@
 <?php 
 namespace App\Controller;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use App\Entity\Equipo;
+use App\Form\EquipoType;
 
 
 /**
@@ -24,9 +27,26 @@ class EquipoController extends AbstractController{
     /**
      * @ROute("/nuevo", name="nuevoEquipo")
      */
-    public function nuevoEquipo(){
-        $hola="Es es el home";
+    public function nuevoEquipo(Request $request){
+        $equipo= new Equipo();
+        $form = $this->createForm(EquipoType::class, $equipo);
+        $form->handleRequest($request);
 
-        return $this->render('Equipo/base.html.twig',['hola'=>$hola]);
+        if ($form->isSubmitted() && $form->isValid()) {
+            // $form->getData() holds the submitted values
+            $equipo = $form->getData();
+    
+             $entityManager = $this->getDoctrine()->getManager();
+             $entityManager->persist($equipo);
+             $entityManager->flush();
+    
+            return $this->redirectToRoute('listaEquipo');
+        }
+
+        return $this->render('Equipo/nuevo.html.twig',[
+            'form' => $form->createView()
+        ]);
     }
+
+
 }
